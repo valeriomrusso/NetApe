@@ -91,6 +91,5 @@ Let me know if you’d like to dive into a specific part of the project, such as
 
 The project is divided in several steps:
 - we have to collect logs of a game (or of a single episode)
-- we have to classify data (two approaches: rule-based or Automated NN classifier)
+- we have to classify data (two approaches: rule-based or Automated NN classifier(Random Forest, clustering K-means))
 - we have to analyze data (two approaches: rule-based or Automated NN like llm)
-- 
