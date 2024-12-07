@@ -7,7 +7,7 @@ Project Structure
 
 1. Data Collection
 
- • Game Logs: Utilize NetHack logs (potentially from MiniHack or public servers like alt.org). These logs provide detailed information on player actions.
+ • Game Logs: Utilize NetHack logs (potentially from MiniHack or public servers like alt.org). These logs provide detailed information on player actions. sources: https://alt.org/nethack/top60d.html (list of played games with logs)
  • Sampling: Collect data from both beginner and expert players to capture a variety of styles and skill levels.
 
 2. Data Preprocessing
