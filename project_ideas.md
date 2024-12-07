@@ -1,100 +1,109 @@
-Project: Player Behavior Interpretation
+# Project: Player Behavior Interpretation for NetHack
 
-Main Objective:
-Develop a system that analyzes NetHack game logs to identify player styles, strengths, and weaknesses. The system will then provide personalized recommendations to improve player performance.
+The goal of this project is to analyze player behavior within NetHack logs, classify playstyles, identify strengths and weaknesses, and provide personalized recommendations to improve performance. Below is the breakdown of the project structure and the methodologies involved.
 
-Project Structure
+---
 
-1. Data Collection
+## Project Structure
 
- • Game Logs: Utilize NetHack logs (potentially from MiniHack or public servers like alt.org). These logs provide detailed information on player actions. sources: https://alt.org/nethack/top60d.html (list of played games with logs)
- • Sampling: Collect data from both beginner and expert players to capture a variety of styles and skill levels.
+### 1. **Data Collection**
+- **Game Logs**: The primary source of data will be logs from platforms like **alt.org** or potentially **MiniHack**. These logs provide detailed information on player actions, such as combat, item usage, deaths, and interactions with the environment.
+  - **Source**: [alt.org NetHack Logs](https://alt.org/nethack/top60d.html)
+- **Sampling**: The data should ideally cover both **beginner and expert players** to ensure a diverse range of player styles and skill levels.
 
-2. Data Preprocessing
+### 2. **Data Preprocessing**
+- **Log Parsing**: Logs will need to be parsed to extract key elements like:
+  - **Actions**: Combat, exploration, item usage, death events.
+  - **Significant Events**: These include major in-game occurrences like monster encounters, deaths, or the use of critical items.
+  - **Environmental States**: Includes game-level data such as dungeon level, player health, and nearby creatures.
+  
+- **Feature Extraction**: The data should be represented numerically to enable analysis:
+  - **Frequent Actions**: This could include things like combat frequency, exploration behaviors, or item usage patterns.
+  - **Efficiency**: Measures like the percentage of goals achieved versus time or steps taken in the game.
+  - **Mistakes**: Identify repetitive actions, such as repeated deaths due to similar mistakes, or inefficiencies in combat.
 
- • Log Parsing: Analyze logs to extract actions, significant events (e.g., attacks, deaths, item usage), and environmental states.
- • Feature Extraction: Create numerical representations of playstyles:
- • Frequent Actions: Combat, exploration, item usage, retreating.
- • Efficiency: Percentage of goals achieved vs. time or steps taken.
- • Mistakes: Repetitive unnecessary actions or situations leading to death.
+### 3. **Playstyle Classification**
+- **Clustering Techniques**:
+  - **K-Means** or **DBSCAN** could be used to group players based on similar behaviors and actions.
+  
+- **Player Categories**:
+  - **Explorers**: These players prioritize exploration and may often take risks.
+  - **Fighters**: Focus on direct combat with little regard for other elements of the game.
+  - **Cautious Players**: Focus on minimizing risks, planning strategies, and avoiding danger.
+  - **Experimenters**: Players who test unconventional strategies and actions (e.g., heavy use of items).
 
-3. Playstyle Classification
+### 4. **Identifying Strengths and Weaknesses**
+- **Strengths**: Strategic decisions, effective item usage, and adaptability in combat or exploration.
+- **Weaknesses**: Common mistakes like poor inventory management, tendency to rush into dangerous situations, or poor handling of specific enemies.
 
- • Algorithms: Use clustering techniques (e.g., K-means, DBSCAN) to identify groups of players with similar behaviors.
- • Player Categories:
- • Explorers: Prioritize exploration over survival.
- • Fighters: Focus on direct combat.
- • Cautious Players: Minimize risks, paying close attention to the environment.
- • Experimenters: Attempt unconventional actions, often involving intensive item usage.
+### 5. **Personalized Suggestions**
+- **For Fighters**: "Consider using strategic retreats more often when facing multiple enemies."
+- **For Explorers**: "Avoid entering new rooms without an escape strategy."
+- **Improvement Metrics**:
+  - **Survival Rate**: How often the player survives encounters and avoids death.
+  - **Exploration Efficiency**: Measures how well the player explores the game world.
+  - **Reduction in Mistakes**: Reducing unnecessary actions and mistakes that lead to deaths or setbacks.
 
-4. Identifying Strengths and Weaknesses
+### 6. **Output Interface**
+- **Visualization**:
+  - **Frequent Actions**: Graphs showing the most common actions taken by the player.
+  - **Heatmaps**: To show areas in the game that the player has explored frequently.
+  - **Report**: A summary report (PDF/HTML) detailing the playstyle, strengths, weaknesses, and personalized recommendations.
 
- • Analyze data to highlight:
- • Strengths: Strategic decisions, smart item usage.
- • Weaknesses: Tendency to enter dangerous situations, poor inventory management, or inability to handle specific enemies.
+---
 
-5. Personalized Suggestions
+## Technical Implementation
 
- • Targeted Recommendations:
- • For a fighter: “Use strategic retreats more often when facing grouped enemies.”
- • For an explorer: “Avoid entering new rooms without preparing an escape strategy.”
- • Improvement Metrics:
- • Survival rate.
- • Exploration efficiency.
- • Reduction in repetitive errors.
+### **Required Technologies**
+- **Python**: For parsing and data analysis.
+- **Pandas & NumPy**: For manipulating data and performing statistical analysis.
+- **Scikit-learn**: For clustering (K-Means, DBSCAN) and other classification algorithms.
+- **Matplotlib/Seaborn**: For visualizations of data such as graphs and heatmaps.
+- **Flask/Streamlit** (Optional): To create an interactive web interface for users to upload logs and view analyses.
 
-6. Output Interface
+---
 
- • Visualization:
- • Graphs of frequent actions.
- • Heatmaps of visited areas in the game.
- • Report: A PDF or HTML report describing the playstyle, strengths/weaknesses, and recommendations.
+## Development Stages
 
-Technical Implementation
+1. **Parsing and Preprocessing**:
+   - Develop a script to read raw logs and convert them into structured formats (e.g., dataframes) for further analysis.
+   
+2. **Data Analysis**:
+   - Implement algorithms (e.g., clustering, classification) to identify playstyles and classify the behaviors of different players.
 
-Required Technologies
+3. **Recommendations**:
+   - Create rule-based logic or machine learning models to generate personalized suggestions based on the player’s behavior and style.
 
- 1. Python: For log parsing and analysis.
- 2. Pandas and NumPy: For data manipulation and analysis.
- 3. Scikit-learn: For clustering and classification.
- 4. Matplotlib/Seaborn: For visualizations.
- 5. Flask/Streamlit (optional): To build an interactive web interface.
+4. **Visualization**:
+   - Integrate visualization tools to display frequent actions, heatmaps of explored areas, and overall reports summarizing the player’s behavior.
 
-Development Stages
+---
 
- 1. Parsing and Preprocessing:
- • Develop a Python script to read logs and transform them into dataframes for analysis.
- 2. Data Analysis:
- • Implement clustering and performance metric calculations.
- 3. Recommendations:
- • Design rule-based logic or predictive models to provide suggestions.
- 4. Visualization:
- • Integrate graphs and reports to display results.
+## Goals and Challenges
 
-Goals and Challenges
+### **Goals**:
+- **Enhance the NetHack Player Experience**: Provide players with insights into their strategic choices to help them improve.
+- **AI Interpretation of Human Behavior**: Explore how AI can be used to interpret and refine human behavior in complex, interactive environments like NetHack.
 
-Goals:
+### **Challenges**:
+- **Log Complexity**: NetHack logs are intricate, containing detailed player actions and events, requiring advanced parsing techniques.
+- **Interpreting Strategies**: Some playstyles are subtle, and determining the motivations behind actions (e.g., cautious vs. cowardly behavior) is complex.
+- **Scaling**: As the system grows and processes larger datasets, ensuring efficient processing and analysis becomes a challenge.
 
- • Enhance the NetHack player experience by making them more aware of their strategic choices.
- • Explore AI to interpret and improve human behavior in complex games.
+----------------------------------------------------------------------
 
-Challenges:
+## Approaches for Classification and Analysis
 
- • Complexity of NetHack logs and the variability of actions.
- • Interpreting less evident strategies.
- • Scaling the system for very large datasets.
+- **Classification Approach**:
+  1. **Rule-Based**: Manually define criteria for different playstyles (e.g., if a player uses "attack" frequently and has low "retreat" actions, classify as a "Fighter").
+  2. **Automated Machine Learning**: Use algorithms like **Random Forests**, **K-Means**, or **Neural Networks** to classify players into groups based on their in-game actions.
 
-Let me know if you’d like to dive into a specific part of the project, such as the log parser or clustering model!
+- **Analysis Approach**:
+  1. **Rule-Based**: Define thresholds for strengths and weaknesses (e.g., excessive healing indicates cautiousness, repetitive deaths suggest a weakness).
+  2. **Automated Neural Networks**: Use more sophisticated models like **LSTM (Long Short-Term Memory)** or other sequence-based neural networks to identify patterns over time and predict player behavior.
 
+----------------------------------------------------------------------
 
--------------------------------------------------
-
-The project is divided in several steps:
-- we have to collect logs of a game (or of a single episode)
-- we have to classify data (two approaches: rule-based or Automated NN classifier(Random Forest, clustering K-means))
-- we have to analyze data (two approaches: rule-based or Automated NN like llm)
-
-------------------------------------------------
 
 ### CLASSIFYING TECHNIQUES DATASET 1
 # Techniques for Analyzing NetHack Logs
