@@ -97,49 +97,64 @@ The project is divided in several steps:
 ------------------------------------------------
 
 ### CLASSIFYING TECHNIQUES DATASET 1
-Dataset alt.org - NetHack top scores, past 60 days![image](https://github.com/user-attachments/assets/7aeeb63c-8e29-49d6-b952-624607463e18)
+# Techniques for Analyzing NetHack Logs
 
+## 1. Clustering (Unsupervised Learning)
 
-1. Clustering (Unsupervised Learning)
-	• Techniques:
-		○ K-Means: Suitable for grouping similar playstyles based on numerical features like frequency of actions, inventory usage, or combat tendencies.
-		○ DBSCAN: Ideal for detecting less common or unique playstyles, such as "Experimenters" who may try unconventional strategies.
-	• Why Fit:
-		○ These methods help uncover natural groupings in player behavior without requiring labeled data.
-3. Hidden Markov Models (HMMs)
-	• How It Works:
-		○ Models the sequence of actions in the game as states, revealing patterns such as combat followed by healing or exploration sequences.
-	• Why Fit:
-		○ Great for identifying "Cautious Players" (who often follow risk-averse patterns like retreat-heal-repeat) or "Fighters" (who engage enemies directly without fallback strategies).
-4. Time Series Analysis
-	• Techniques:
-		○ Dynamic Time Warping or Recurrent Neural Networks (RNNs).
-	• Why Fit:
-		○ Tracks how playstyle evolves over time, identifying changes in behavior such as increased caution after a near-death experience.
-5. Association Rule Learning
-	• Techniques:
-		○ Apriori or FP-Growth.
-	• Why Fit:
-		○ Discovers correlations in inventory usage patterns, such as frequent use of teleportation items by "Experimenters" or healing potions by "Cautious Players."
+### Techniques:
+- **K-Means**: Suitable for grouping similar playstyles based on numerical features like frequency of actions, inventory usage, or combat tendencies.
+- **DBSCAN**: Ideal for detecting less common or unique playstyles, such as "Experimenters" who may try unconventional strategies.
 
-Best Fit for This Log
-Given the content of the log:
-	1. Clustering:
-		○ Best for exploring natural groupings of players without predefined labels.
-		○ The log provides ample behavioral data (e.g., attack vs. retreat actions, inventory use) that can feed into clustering algorithms.
-	2. Random Forests:
-		○ Ideal if a labeled dataset is available (e.g., expert-labeled playstyles).
-		○ The log's richness in features, such as combat stats and item usage, aligns well with the model's needs.
-	3. Hidden Markov Models:
-		○ Excellent for analyzing the sequential nature of gameplay (e.g., exploring, fighting, healing cycles).
-		○ Fits well with the log's event-driven format.
-	4. Association Rule Learning:
-		○ Useful for mining patterns like combinations of actions/items that correlate with specific styles.
+### Why Fit:
+These methods help uncover natural groupings in player behavior without requiring labeled data.
 
-Combination Approach
-	• Initial Clustering to group similar playstyles.
-	• Use Random Forests with labeled data to refine classifications.
- • Apply HMMs to understand sequential behavior in each playstyle.
-   
-   ![image](https://github.com/user-attachments/assets/dca7b9ab-3fe2-4be9-b217-7016d39dc26f)
+## 2. Hidden Markov Models (HMMs)
 
+### How It Works:
+- Models the sequence of actions in the game as states, revealing patterns such as combat followed by healing or exploration sequences.
+
+### Why Fit:
+Great for identifying "Cautious Players" (who often follow risk-averse patterns like retreat-heal-repeat) or "Fighters" (who engage enemies directly without fallback strategies).
+
+## 3. Time Series Analysis
+
+### Techniques:
+- **Dynamic Time Warping** or **Recurrent Neural Networks (RNNs)**.
+
+### Why Fit:
+Tracks how playstyle evolves over time, identifying changes in behavior such as increased caution after a near-death experience.
+
+## 4. Association Rule Learning
+
+### Techniques:
+- **Apriori** or **FP-Growth**.
+
+### Why Fit:
+Discovers correlations in inventory usage patterns, such as frequent use of teleportation items by "Experimenters" or healing potions by "Cautious Players."
+
+---
+
+## Best Fit for This Log
+
+### 1. **Clustering**:
+- **Best for exploring natural groupings** of players without predefined labels.
+- The log provides ample behavioral data (e.g., attack vs. retreat actions, inventory use) that can feed into clustering algorithms.
+
+### 2. **Random Forests**:
+- **Ideal if a labeled dataset is available** (e.g., expert-labeled playstyles).
+- The log's richness in features, such as combat stats and item usage, aligns well with the model's needs.
+
+### 3. **Hidden Markov Models**:
+- **Excellent for analyzing the sequential nature of gameplay** (e.g., exploring, fighting, healing cycles).
+- Fits well with the log's event-driven format.
+
+### 4. **Association Rule Learning**:
+- **Useful for mining patterns** like combinations of actions/items that correlate with specific styles.
+
+---
+
+## Combination Approach
+
+1. **Initial Clustering** to group similar playstyles.
+2. Use **Random Forests** with labeled data to refine classifications.
+3. Apply **HMMs** to understand sequential behavior in each playstyle.
