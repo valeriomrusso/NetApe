@@ -4,6 +4,7 @@ from collections import deque
 from queue import PriorityQueue
 from utils import get_valid_moves
 from typing import Tuple, List
+import random
 
 def build_path(parent: dict, target: Tuple[int, int]) -> List[Tuple[int, int]]:
     path = []
