@@ -3,7 +3,7 @@
 1. Create an envinronment putting these commands on terminal:
 
 - conda create --name minicondaenv python=3.8
-- conda activate minihackenv
+- conda activate minicondaenv
 
 2. Install dependencies (mandatory only cmake) Ubuntu:
 
