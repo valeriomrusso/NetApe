@@ -46,6 +46,7 @@ def genetic_algorithm(game_map, start, target, population, max_generations=100, 
 
     while generation < max_generations:
         # Calculate weights based on fitness scores
+        print(generation)
         weights = [fitness(individual, game_map, start, target) for individual in population]
 
         # Normalize weights to sum to 1
@@ -87,7 +88,7 @@ def reproduce(parent1, parent2):
     :param parent2: The second parent (path)
     :return: A new path
     """
-    n = min(len(parent1), len(parent2))
+    n = max(len(parent1), len(parent2))
     if n <= 1:
         print(f"Warning: Parents too short for crossover: len(parent1)={len(parent1)}, len(parent2)={len(parent2)}")
         return parent1 if random.random() < 0.5 else parent2
