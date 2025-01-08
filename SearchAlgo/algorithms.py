@@ -2,7 +2,7 @@ import numpy as np
 
 from collections import deque
 from queue import PriorityQueue
-from SearchAlgTests.GeneticAlgorithm.utils import get_valid_moves
+from utils import get_valid_moves
 from typing import Tuple, List
 
 def build_path(parent: dict, target: Tuple[int, int]) -> List[Tuple[int, int]]:

@@ -1,8 +1,7 @@
 import numpy as np
-
 from collections import deque
 from queue import PriorityQueue
-from SearchAlgTests.GeneticAlgorithm.utils import get_valid_moves
+from utils import get_valid_moves
 from typing import Tuple, List
 
 def build_path(parent: dict, target: Tuple[int, int]) -> List[Tuple[int, int]]:
@@ -19,26 +18,40 @@ def bfs(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int]) -
     visited = set()
     queue.append(start)
     visited.add(start)
+    list_paths = []
 
     # Create a dictionary to keep track of the parent node for each node in the path
     parent = {start: None}
 
+    print(f"Starting BFS from {start} to {target}")
+    print(f"Initial queue: {list(queue)}")
+    print(f"Initial visited set: {visited}")
+
     while queue:
         # Dequeue a vertex from the queue
         current = queue.popleft()
+        list_paths.append(build_path(parent, current))
+        #print(f"\nDequeued: {current}")
+        #print(f"Queue after dequeue: {list(queue)}")
 
         # Check if the target node has been reached
         if current == target:
-            print("Target found!")
+            print("\nTarget found!")
             path = build_path(parent, target)
-            return path
+            print(f"Path: {path}")
+            print(f"All paths: {list_paths}")
+            list_paths.append(path)
+            return list_paths
 
         # Visit all adjacent neighbors of the dequeued vertex
         for neighbor in get_valid_moves(game_map, current):
+            #print(f"Valid neighbors of {current}: {neighbor}")
             if neighbor not in visited:
                 queue.append(neighbor)
                 visited.add(neighbor)
                 parent[neighbor] = current
+                #print(f"Visited {neighbor}, added to queue. Updated queue: {list(queue)}")
+                #print(f"Updated visited set: {visited}")
 
     print("Target node not found!")
     return None
