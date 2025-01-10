@@ -5,25 +5,35 @@ from typing import Tuple, List
 
 # Funzioni ausiliarie
 
-def fitness(path: List[Tuple[int, int]], target: Tuple[int, int]) -> float:
+def fitness(path: List[Tuple[int, int]], target: Tuple[int, int], population=None) -> float:
     if not path:
         return float('-inf')
     
     last_node = path[-1]
     dist = abs(last_node[0] - target[0]) + abs(last_node[1] - target[1])
     
-    # Penalizza ripetizioni
+    # Calcola diversità rispetto alla popolazione
+    diversity_score = 0
+    if population:
+        # Calcola quanto questo path è diverso dagli altri nella popolazione
+        avg_common_positions = 0
+        for other_path in population:
+            common_positions = len(set(path).intersection(set(other_path)))
+            avg_common_positions += common_positions
+        if len(population) > 0:
+            avg_common_positions /= len(population)
+            diversity_score = -avg_common_positions  # Penalizza similarità
+    
+    # Altri calcoli esistenti...
     position_counts = {}
     for pos in path:
         position_counts[pos] = position_counts.get(pos, 0) + 1
     
     repetition_penalty = sum(count - 1 for count in position_counts.values())
-    
-    # Calcola progressione verso il target
     unique_positions = len(set(path))
     progress_score = unique_positions / len(path)
     
-    return -(dist + repetition_penalty * 2) + (progress_score * 10)
+    return -(dist + repetition_penalty * 2) + (progress_score * 10) + (diversity_score * 5)
 
 def generate_random_path(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], max_steps: int) -> List[Tuple[int, int]]:
     """
@@ -90,37 +100,24 @@ def crossover(parent1: List[Tuple[int, int]], parent2: List[Tuple[int, int]]) ->
 
 def mutate(path: List[Tuple[int, int]], game_map: np.ndarray, mutation_rate: float) -> List[Tuple[int, int]]:
     """
-    Introduce una mutazione casuale in un percorso,
-    mantenendo la validità dei movimenti.
+    Applica una mutazione significativa con probabilità mutation_rate
     """
-    if not path:
+    if not path or random.random() < mutation_rate:  # Non muta se non passa il check probabilistico
         return path
     
-    if random.random() < mutation_rate:
-        idx = random.randint(0, len(path) - 1)
-        neighbors = get_valid_moves(game_map, path[idx])
-        
-        if neighbors:
-            new_step = random.choice(neighbors)
-            
-            # Verifica che la nuova mossa sia valida rispetto al passo precedente e successivo
-            is_valid = True
-            if idx > 0:
-                is_valid = is_valid and (
-                    (abs(new_step[0] - path[idx - 1][0]) == 1 and new_step[1] == path[idx - 1][1]) or
-                    (new_step[0] == path[idx - 1][0] and abs(new_step[1] - path[idx - 1][1]) == 1)
-                )
-            
-            if idx < len(path) - 1:
-                is_valid = is_valid and (
-                    (abs(new_step[0] - path[idx + 1][0]) == 1 and new_step[1] == path[idx + 1][1]) or
-                    (new_step[0] == path[idx + 1][0] and abs(new_step[1] - path[idx + 1][1]) == 1)
-                )
-            
-            if is_valid:
-                path[idx] = new_step
+    # Se passiamo il check di probabilità, facciamo una mutazione significativa
+    idx = random.randint(0, len(path) - 1)
+    current = path[idx]
+    new_subpath = [current]
     
-    return path
+    # Genera alcuni passi casuali validi
+    for _ in range(min(5, len(path) - idx)):
+        neighbors = get_valid_moves(game_map, new_subpath[-1])
+        if not neighbors:
+            break
+        new_subpath.append(random.choice(neighbors))
+    
+    return path[:idx] + new_subpath
 
 
 # Funzione principale
@@ -131,51 +128,22 @@ def genetic_alg_func(game_map: np.ndarray, start: Tuple[int, int], target: Tuple
     population = [generate_random_path(game_map, start, target, max_steps) for _ in range(population_size)]
     list_paths = []  # Lista per salvare i percorsi di ogni generazione
     
-    # Tiene traccia del miglior fitness per rilevare stallo
-    best_fitness_count = 0
-    last_best_fitness = float('-inf')
-    
     for generation in range(generations):
         # Valutazione
         population.sort(key=lambda path: fitness(path, target), reverse=True)
         
         # Salva il miglior percorso della generazione
         best_path = population[0]
-        list_paths.append(best_path)
+        # Aggiungi il path solo se è diverso dall'ultimo inserito
+        if not list_paths or best_path != list_paths[-1]:
+            list_paths.append(best_path)
         
         # Controlla se abbiamo raggiunto il target
         if best_path and best_path[-1] == target:
             print(f"Target raggiunto nella generazione {generation}")
             return list_paths
             
-        # Controlla stallo
-        current_best_fitness = fitness(best_path, target)
-        if abs(current_best_fitness - last_best_fitness) < 0.001:
-            best_fitness_count += 1
-        else:
-            best_fitness_count = 0
-        last_best_fitness = current_best_fitness
-        
-        # Se siamo in stallo, rigenera parte della popolazione
-        if best_fitness_count > 10:
-            elite_size = population_size // 10  # Mantieni solo il 10% migliore
-            elite = population[:elite_size]
-            new_random = [generate_random_path(game_map, start, target, max_steps) 
-                         for _ in range(population_size - elite_size)]
-            population = elite + new_random
-            best_fitness_count = 0
-            continue
-            
-        # Selezione con diversità
-        elite_size = population_size // 4
-        random_size = population_size // 4
-        
-        # Mantieni l'élite
-        elite = population[:elite_size]
-        # Mantieni alcuni individui casuali per la diversità
-        random_selection = random.sample(population[elite_size:], random_size)
-        # Genera nuova popolazione
-        new_population = elite + random_selection
+        new_population = []
         
         # Riproduzione per completare la popolazione
         while len(new_population) < population_size:

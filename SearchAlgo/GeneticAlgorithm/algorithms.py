@@ -12,7 +12,7 @@ def build_path(parent: dict, target: Tuple[int, int]) -> List[Tuple[int, int]]:
     path.reverse()
     return path
 
-def bfs(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int]) -> List[Tuple[int, int]]:
+def bfs(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int]) -> List[List[Tuple[int, int]]]:
     # Create a queue for BFS and mark the start node as visited
     queue = deque()
     visited = set()
@@ -23,9 +23,9 @@ def bfs(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int]) -
     # Create a dictionary to keep track of the parent node for each node in the path
     parent = {start: None}
 
-    print(f"Starting BFS from {start} to {target}")
-    print(f"Initial queue: {list(queue)}")
-    print(f"Initial visited set: {visited}")
+    #print(f"Starting BFS from {start} to {target}")
+    #print(f"Initial queue: {list(queue)}")
+    #print(f"Initial visited set: {visited}")
 
     while queue:
         # Dequeue a vertex from the queue
@@ -38,8 +38,8 @@ def bfs(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int]) -
         if current == target:
             print("\nTarget found!")
             path = build_path(parent, target)
-            print(f"Path: {path}")
-            print(f"All paths: {list_paths}")
+            #print(f"Path: {path}")
+            #print(f"All paths: {list_paths}")
             list_paths.append(path)
             return list_paths
 
