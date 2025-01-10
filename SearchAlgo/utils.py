@@ -68,3 +68,12 @@ def manhattan_distance(point1: Tuple[int, int], point2: Tuple[int, int]) -> int:
     x1, y1 = point1
     x2, y2 = point2
     return abs(x1 - x2) + abs(y1 - y2)
+
+def monster_penalty(game_map: np.ndarray, position: Tuple[int, int], monsters: List[Tuple[int, int]], max_penalty: int = 10) -> int:
+    penalty = 0
+    for monster in monsters:
+        dist = manhattan_distance(position, monster)
+        if dist == 0:
+            return float('inf')  # Evita i nodi occupati dai mostri
+        penalty += max(0, max_penalty - dist)
+    return penalty
