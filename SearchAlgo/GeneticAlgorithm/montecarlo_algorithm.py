@@ -24,8 +24,10 @@ class Node:
         self.visits = 0
         self.value = 0
 
-    def is_fully_expanded(self):
-        return len(self.children) > 0
+    def is_fully_expanded(self, possible_actions):
+        explored_actions = {child.action for child in self.children}
+        return len(explored_actions) == len(possible_actions)
+
 
     def best_child(self, exploration_weight=1.0):
         weights = [
@@ -36,17 +38,17 @@ class Node:
         return self.children[np.argmax(weights)]
 
     def expand(self, possible_actions, environment):
-        for action in possible_actions:
-            try:
-                next_state, reward, done, info = environment.step(action)
-                child_node = Node(state=next_state, parent=self, action=action)
-                self.children.append(child_node)
-                
-                if done:
-                    break
-            except Exception as e:
-                print(f"Error during expansion: {e}")
-                break
+        unexplored_actions = [a for a in possible_actions if a not in {c.action for c in self.children}]
+        if not unexplored_actions:
+            return
+        action = random.choice(unexplored_actions)
+        try:
+            next_state, reward, done, info = environment.step(action)
+            child_node = Node(state=next_state, parent=self, action=action)
+            self.children.append(child_node)
+        except Exception as e:
+            print(f"Error during expansion: {e}")
+
 
     
 def rollout(environment, start_state, max_steps=50):
