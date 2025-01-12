@@ -81,7 +81,7 @@ def evaluate_genetic_algorithm(game_map: np.ndarray, start: Tuple[int, int], tar
 
 def fitness(path: List[Tuple[int, int]], target: Tuple[int, int], population=None) -> float:
     """
-    Enhanced fitness function with stronger local maxima avoidance
+    Calculates fitness score for a path based on distance to target, diversity, and path quality
     """
     if not path:
         return float('-inf')
@@ -89,91 +89,28 @@ def fitness(path: List[Tuple[int, int]], target: Tuple[int, int], population=Non
     last_node = path[-1]
     dist = abs(last_node[0] - target[0]) + abs(last_node[1] - target[1])
     
-    # Track position history and frequencies
+    # Calculate diversity relative to population
+    diversity_score = 0
+    if population:
+        # Calculate how different this path is from others in the population
+        avg_common_positions = 0
+        for other_path in population:
+            common_positions = len(set(path).intersection(set(other_path)))
+            avg_common_positions += common_positions
+        if len(population) > 0:
+            avg_common_positions /= len(population)
+            diversity_score = -avg_common_positions  # Penalize similarity
+    
+    # Other existing calculations...
     position_counts = {}
     for pos in path:
         position_counts[pos] = position_counts.get(pos, 0) + 1
     
-    # === Local Maxima Detection ===
-    local_maxima_penalty = 0
-    
-    # Check for path stagnation
-    last_positions = path[-10:] if len(path) >= 10 else path  # Increased window to 10
-    unique_last_positions = len(set(last_positions))
-    area_size = max(abs(p[0] - q[0]) + abs(p[1] - q[1]) 
-                   for p in last_positions for q in last_positions)
-    
-    # Penalize small area exploration heavily
-    if area_size < 5:  # If exploring area smaller than 5x5
-        local_maxima_penalty += 200 * (5 - area_size)  # Increased penalty
-    
-    # Penalize repeated end positions exponentially
-    end_point_count = position_counts.get(last_node, 0)
-    if end_point_count > 1:
-        local_maxima_penalty += 100 * (2 ** end_point_count)
-    
-    # === Population Diversity Analysis ===
-    diversity_score = 0
-    if population:
-        similar_paths = 0
-        similar_endings = 0
-        
-        for other_path in population:
-            if not other_path:
-                continue
-                
-            # Check for similar endings
-            if other_path[-1] == last_node:
-                similar_endings += 1
-            
-            # Check for path similarity
-            common_positions = len(set(path).intersection(set(other_path)))
-            path_similarity = common_positions / len(set(path))
-            
-            if path_similarity > 0.7:  # If paths are more than 70% similar
-                similar_paths += 1
-        
-        # Heavy penalties for population convergence
-        if similar_paths > len(population) * 0.3:  # If more than 30% paths are similar
-            local_maxima_penalty += 300
-        
-        if similar_endings > len(population) * 0.2:  # If more than 20% end in same spot
-            local_maxima_penalty += 500
-    
-    # === Progress Assessment ===
-    target_distances = [abs(pos[0] - target[0]) + abs(pos[1] - target[1]) 
-                       for pos in path]
-    
-    # Calculate progress metrics
-    min_dist = min(target_distances)
-    progress_variance = np.std(target_distances) if len(target_distances) > 1 else 0
-    
-    # Reward for getting closer to target at any point
-    progress_reward = 50 * (1 / (min_dist + 1))
-    
-    # Reward for consistent exploration (high variance in distances)
-    exploration_reward = progress_variance * 10
-    
-    # === Path Quality Assessment ===
-    repetition_penalty = sum(count * count for count in position_counts.values())
+    repetition_penalty = sum(count - 1 for count in position_counts.values())
     unique_positions = len(set(path))
-    coverage_score = (unique_positions / len(path)) * 100
+    progress_score = unique_positions / len(path)
     
-    # === Final Score Calculation ===
-    final_score = (
-        -(dist * 3)  # Increased base distance penalty
-        - local_maxima_penalty
-        - (repetition_penalty * 2)
-        + coverage_score
-        + progress_reward
-        + exploration_reward
-    )
-    
-    # Extreme penalty for very poor paths
-    if local_maxima_penalty > 1000 or repetition_penalty > 50:
-        final_score *= 2  # Double the negative score
-    
-    return final_score
+    return -(dist + repetition_penalty * 2) + (progress_score * 10) + (diversity_score * 5)
 
 def generate_random_path(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], max_steps: int) -> List[Tuple[int, int]]:
     """
