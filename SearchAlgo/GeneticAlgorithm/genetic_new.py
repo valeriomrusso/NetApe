@@ -10,21 +10,27 @@ def run_multiple_evaluations(game_map: np.ndarray, start: Tuple[int, int], targe
                            max_steps: int, num_iterations: int) -> Dict[str, Any]:
     successful_runs = []
     all_metrics = []
-    total_actual_runs = 0  # Counter per il numero effettivo di runs
+    total_actual_runs = 0
+    best_path_overall = None
+    best_path_length = float('inf')
     
     for i in range(num_iterations):
         paths, metrics = evaluate_genetic_algorithm(game_map, start, target, 
                                                  population_size, generations, 
                                                  mutation_rate, max_steps)
         all_metrics.append(metrics)
-        total_actual_runs += 1  # Incrementa il contatore per ogni run effettiva
+        total_actual_runs += 1
+        
+        # Salva il percorso se è il migliore trovato finora
+        if metrics['path_found'] and metrics['final_path_length'] < best_path_length:
+            best_path_length = metrics['final_path_length']
+            best_path_overall = paths[-1] if paths else None
+            
         if metrics['path_found']:
             successful_runs.append(metrics)
     
-    # Calcola il success rate basato sul numero effettivo di runs
     success_rate = (len(successful_runs) / total_actual_runs) * 100
     
-    # Calculate averages only for successful runs
     if successful_runs:
         avg_metrics = {
             'avg_execution_time': sum(run['execution_time'] for run in successful_runs) / len(successful_runs),
@@ -33,17 +39,21 @@ def run_multiple_evaluations(game_map: np.ndarray, start: Tuple[int, int], targe
             'avg_final_paths': sum(run['final_paths'] for run in successful_runs) / len(successful_runs),
             'avg_duplicate_paths': sum(run['number_of_dublicate_best_paths'] for run in successful_runs) / len(successful_runs),
             'avg_generations_needed': sum(run['generations_needed'] for run in successful_runs) / len(successful_runs),
-            'manhattan_distance': all_metrics[0]['manhattan_distance'],  # This is constant for all runs
+            'manhattan_distance': all_metrics[0]['manhattan_distance'],
             'success_rate': success_rate,
             'total_runs': num_iterations,
-            'successful_runs': len(successful_runs)
+            'successful_runs': len(successful_runs),
+            'best_path': best_path_overall,
+            'best_path_length': best_path_length
         }
     else:
         avg_metrics = {
             'success_rate': 0,
             'total_runs': num_iterations,
             'successful_runs': 0,
-            'manhattan_distance': all_metrics[0]['manhattan_distance']
+            'manhattan_distance': all_metrics[0]['manhattan_distance'],
+            'best_path': None,
+            'best_path_length': None
         }
     
     return avg_metrics
@@ -79,9 +89,10 @@ def evaluate_genetic_algorithm(game_map: np.ndarray, start: Tuple[int, int], tar
 
 # Side functions
 
-def fitness(path: List[Tuple[int, int]], target: Tuple[int, int], population=None) -> float:
+def fitness(path: List[Tuple[int, int]], target: Tuple[int, int], population=None, tabu_paths=None) -> float:
     """
     Calculates fitness score for a path based on distance to target, diversity, and path quality
+    Now also considers similarity to tabu paths
     """
     if not path:
         return float('-inf')
@@ -92,16 +103,23 @@ def fitness(path: List[Tuple[int, int]], target: Tuple[int, int], population=Non
     # Calculate diversity relative to population
     diversity_score = 0
     if population:
-        # Calculate how different this path is from others in the population
         avg_common_positions = 0
         for other_path in population:
             common_positions = len(set(path).intersection(set(other_path)))
             avg_common_positions += common_positions
         if len(population) > 0:
             avg_common_positions /= len(population)
-            diversity_score = -avg_common_positions  # Penalize similarity
+            diversity_score = -avg_common_positions
     
-    # Other existing calculations...
+    # Penalize similarity to tabu paths
+    tabu_penalty = 0
+    if tabu_paths:
+        for tabu_path in tabu_paths:
+            common_positions = len(set(path).intersection(set(tabu_path)))
+            similarity_ratio = common_positions / len(path)
+            tabu_penalty += similarity_ratio * 20  # Forte penalizzazione per similarità con percorsi tabù
+    
+    # Other calculations
     position_counts = {}
     for pos in path:
         position_counts[pos] = position_counts.get(pos, 0) + 1
@@ -110,7 +128,7 @@ def fitness(path: List[Tuple[int, int]], target: Tuple[int, int], population=Non
     unique_positions = len(set(path))
     progress_score = unique_positions / len(path)
     
-    return -(dist + repetition_penalty * 2) + (progress_score * 10) + (diversity_score * 5)
+    return -(dist + repetition_penalty * 2 + tabu_penalty) + (progress_score * 10) + (diversity_score * 5)
 
 def generate_random_path(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], max_steps: int) -> List[Tuple[int, int]]:
     """
@@ -201,40 +219,49 @@ def mutate(path: List[Tuple[int, int]], game_map: np.ndarray, mutation_rate: flo
 def genetic_alg_func(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], 
                     population_size: int, generations: int, mutation_rate: float, max_steps: int) -> List[List[Tuple[int, int]]]:
     
-    # Initial population
     population = [generate_random_path(game_map, start, target, max_steps) for _ in range(population_size)]
-    list_paths = []  # List to save the paths of each generation
+    list_paths = []
+    tabu_paths = []  # Lista dei percorsi che hanno portato a stagnazione
     
+    stagnation_counter = 0
+    best_fitness = float('-inf')
+
     for generation in range(generations):
-        # Evaluation
-        population.sort(key=lambda path: fitness(path, target), reverse=True)
+        # Ordina la popolazione usando una fitness che considera i percorsi tabù
+        population.sort(key=lambda path: fitness(path, target, population, tabu_paths=tabu_paths), reverse=True)
         
-        # Save the best path of the generation
+        list_paths.append(population[0])
+        current_best_fitness = fitness(population[0], target)
+        
+        if current_best_fitness > best_fitness:
+            best_fitness = current_best_fitness
+            stagnation_counter = 0
+        else:
+            stagnation_counter += 1
+
+        # Reset totale se stagnazione
+        if stagnation_counter >= 100:
+            #print(f"Restart totale alla generazione {generation}.")
+            # Aggiungi il percorso corrente alla lista tabù
+            tabu_paths.append(population[0])
+            population = [generate_random_path(game_map, start, target, max_steps) for _ in range(population_size)]
+            stagnation_counter = 0
+            best_fitness = float('-inf')
+
+        # Controlla se il target è stato raggiunto
         best_path = population[0]
-        if generation > 0:
-            list_paths.append(best_path)
-        
-        # Check if we have reached the target
-        if best_path and best_path[-1] == target:
-            print(f"Target reached in generation {generation}")
+        if best_path and is_valid_path(best_path) and best_path[-1] == target:
+            print(f"Target raggiunto in generazione {generation}")
             return list_paths, generation
-            
+
         new_population = []
-        
-        # Reproduction to complete the population
         while len(new_population) < population_size:
-            # Select two different parents
-            parent1, parent2 = random.sample(population[:population_size//2], 2)
-            # Create a child through crossover
+            parent1, parent2 = random.sample(population[:population_size // 2], 2)
             child = crossover(parent1, parent2)
-            # Apply mutation
             child = mutate(child, game_map, mutation_rate)
-            # Ensure the child is different from the parents
-            if child != parent1 and child != parent2:
-                new_population.append(child)
+            new_population.append(child)
         
-        # Update the population
-        population = new_population[:population_size]  # Ensure correct size
-    
+        population = new_population
+
     print("Target not reached after all generations.")
     return list_paths, generation
