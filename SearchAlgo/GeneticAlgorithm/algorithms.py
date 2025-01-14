@@ -58,6 +58,43 @@ def bfs(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int]) -
 
 # ---------------------------------------------
 
+def bfs_uninformed(game_map: np.ndarray, start: Tuple[int, int]) -> List[List[Tuple[int, int]]]:
+    """
+    Performs BFS on an uninformed map, exploring all reachable nodes from the start point.
+    
+    Parameters:
+        game_map (np.ndarray): A 2D numpy array representing the game map.
+        start (Tuple[int, int]): The starting coordinates.
+
+    Returns:
+        List[List[Tuple[int, int]]]: A list of paths explored during the BFS.
+    """
+    # Initialize the BFS queue and visited set
+    queue = deque()
+    visited = set()
+    queue.append(start)
+    visited.add(start)
+    list_paths = []
+
+    # Create a dictionary to keep track of the parent node for each node in the path
+    parent = {start: None}
+
+    while queue:
+        # Dequeue a vertex from the queue
+        current = queue.popleft()
+        list_paths.append(build_path(parent, current))
+
+        # Visit all adjacent neighbors of the dequeued vertex
+        for neighbor in get_valid_moves(game_map, current):
+            if neighbor not in visited:
+                queue.append(neighbor)
+                visited.add(neighbor)
+                parent[neighbor] = current
+
+    return list_paths
+
+# ---------------------------------------------
+
 def a_star(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], h: callable) -> List[Tuple[int, int]]:
     # initialize open and close list
     open_list = PriorityQueue()

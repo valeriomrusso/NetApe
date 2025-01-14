@@ -4,6 +4,9 @@ from utils import get_valid_moves
 from typing import Tuple, List
 import time
 from typing import Dict, Any
+import csv
+from datetime import datetime
+import os
 
 def run_multiple_evaluations(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], 
                            population_size: int, generations: int, mutation_rate: float, 
@@ -86,6 +89,42 @@ def evaluate_genetic_algorithm(game_map: np.ndarray, start: Tuple[int, int], tar
         'manhattan_distance': abs(target[0] - start[0]) + abs(target[1] - start[1])
     }
     return cleaned_paths, metrics
+
+def save_metrics_to_csv(seed, game_map, start, target, input_params, avg_metrics, csv_filename="genetic_algorithm_results.csv"):
+    # Prepare the data dictionary with all relevant information
+    data = {
+        # Input parameters
+        "map_seed": int(seed),
+        "start_point": str(start),
+        "target_point": str(target),
+        "population_size": input_params["population_size"],
+        "generations": input_params["generations"],
+        "mutation_rate": input_params["mutation_rate"],
+        "max_steps": input_params["max_steps"],
+        "num_iterations": input_params["num_iterations"],
+        
+        # Performance metrics
+        "success_rate": avg_metrics["success_rate"],
+        "avg_execution_time": round(avg_metrics["avg_execution_time"], 2) if avg_metrics["successful_runs"] > 0 else 0,
+        "avg_path_length": round(avg_metrics["avg_final_path_length"], 2) if avg_metrics["successful_runs"] > 0 else 0,
+        "avg_generations_needed": round(avg_metrics["avg_generations_needed"], 2) if avg_metrics["successful_runs"] > 0 else 0,
+        "best_path_length": round(avg_metrics["best_path_length"], 2) if avg_metrics["successful_runs"] > 0 else 0,
+        "best_path": str(avg_metrics["best_path"]) if avg_metrics["successful_runs"] > 0 else "None",
+        "successful_runs": avg_metrics["successful_runs"]
+    }
+    
+    # Check if file exists to determine if we need to write headers
+    file_exists = os.path.isfile(csv_filename)
+    
+    # Write to CSV
+    with open(csv_filename, mode='a', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=data.keys())
+        
+        # Write headers only if file doesn't exist
+        if not file_exists:
+            writer.writeheader()
+            
+        writer.writerow(data)
 
 # Side functions
 
