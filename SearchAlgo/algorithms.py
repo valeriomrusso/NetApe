@@ -3,8 +3,7 @@ import numpy as np
 from collections import deque
 from queue import PriorityQueue
 
-from SearchAlgo.utils import euclidean_distance, is_wall, monster_penalty
-from utils import get_valid_moves
+from SearchAlgo.utils import euclidean_distance, is_wall, monster_penalty, get_valid_moves
 from typing import Tuple, List
 import heapq
 
@@ -217,7 +216,7 @@ def beam_search(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int,
 def theta_star(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], h: callable) -> List[Tuple[int, int]]:
     open_list = []
     heapq.heappush(open_list, (0, start))
-    came_from = {start: None}
+    came_from = {start: start}
     g_score = {start: 0}
     visited = set()
 
@@ -232,8 +231,12 @@ def theta_star(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, 
             if neighbor in visited:
                 continue
 
-            if line_of_sight(game_map, came_from[current], neighbor):
-                tentative_g_score = g_score[came_from[current]] +  euclidean_distance(came_from[current], neighbor)
+            parent = came_from.get(current, None)
+            if parent is None:
+                parent = current
+
+            if line_of_sight(game_map, parent, neighbor):
+                tentative_g_score = g_score[parent] +  euclidean_distance(parent, neighbor)
             else:
                 tentative_g_score = g_score[current] + euclidean_distance(current, neighbor)
 
