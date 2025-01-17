@@ -12,7 +12,7 @@ def get_target_location(game_map: np.ndarray, symbol : str = ">") -> Tuple[int, 
     return (x[0], y[0])
 
 def is_wall(position_element: int) -> bool:
-    obstacles = "|- "
+    obstacles = [ord('|'), ord('-'), ord(' ')]
     return chr(position_element) in obstacles
 
 def get_valid_moves(game_map: np.ndarray, current_position: Tuple[int, int]) -> List[Tuple[int, int]]:
@@ -77,3 +77,13 @@ def monster_penalty(game_map: np.ndarray, position: Tuple[int, int], monsters: L
             return float('inf')  # Evita i nodi occupati dai mostri
         penalty += max(0, max_penalty - dist)
     return penalty
+
+def get_monster_positions(game_map: np.ndarray):
+    monster_positions = []
+    monster_chars = set(ord(char) for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+    for i in range(game_map.shape[0]):
+        for j in range(game_map.shape[1]):
+            if game_map[i, j] in monster_chars:
+                monster_positions.append((i, j))
+    return monster_positions
