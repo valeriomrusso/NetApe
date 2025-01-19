@@ -159,7 +159,7 @@ def iddfs(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int],
         path = []
         visited = set()
         if dfs_limited(game_map, start, target, depth, path, visited):
-            return path
+            return path[::-1]
     print("Target node not found!")
     return None
 
@@ -167,17 +167,20 @@ def iddfs(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int],
 def dfs_limited(game_map: np.ndarray, current: Tuple[int, int], target: Tuple[int, int], depth: int,
                 path: List[Tuple[int, int]], visited: set) -> bool:
 
-    if depth == 0 and current == target:
+    if current == target:
         path.append(current)
         return True
-    if depth > 0:
-        visited.add(current)
-        for neighbor in get_valid_moves(game_map, current):
-            if neighbor not in visited:
-                if dfs_limited(game_map, neighbor, target, depth - 1, path, visited):
-                    path.append(current)
-                    return True
-        visited.remove(current)
+
+    if depth <= 0:
+        return False
+
+    visited.add(current)
+    for neighbor in get_valid_moves(game_map, current):
+        if neighbor not in visited:
+            if dfs_limited(game_map, neighbor, target, depth - 1, path, visited):
+                path.append(current)
+                return True
+    visited.remove(current)
     return False
 
 # ----------------------------------------
@@ -216,7 +219,7 @@ def beam_search(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int,
 def theta_star(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], h: callable) -> List[Tuple[int, int]]:
     open_list = []
     heapq.heappush(open_list, (0, start))
-    came_from = {start: start}
+    came_from = {start: None}
     g_score = {start: 0}
     visited = set()
 
