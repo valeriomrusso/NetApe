@@ -3,7 +3,7 @@ import numpy as np
 from collections import deque
 from queue import PriorityQueue
 
-from SearchAlgo.utils import euclidean_distance, is_wall, monster_penalty, get_valid_moves
+from utils import euclidean_distance, is_wall, monster_penalty, get_valid_moves
 from typing import Tuple, List
 import heapq
 
